@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogPost from '../../layouts/BlogPost.astro';
+
+// 1. Map out valid production post path entries natively
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return posts.map((post) => ({
+		// Map BOTH potential dynamic route variables so neither can fail with a 404
+		params: { 
+			slug: post.id || post.slug 
+		},
+		props: { post },
+	}));
+}
+
+// 2. Retrieve the structured data payload properties
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<!-- 3. Push compiled documentation markdown into our widescreen panel layouts -->
+<BlogPost title={post.data.title} description={post.data.description}>
+	<Content />
+</BlogPost>

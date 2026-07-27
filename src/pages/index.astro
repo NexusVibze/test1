@@ -1,0 +1,82 @@
+---
+import { getCollection } from 'astro:content';
+import BlogPost from '../layouts/BlogPost.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+
+const allPosts = await getCollection('blog');
+const recentPosts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<BlogPost title="Home" description="Simplified Technical Fixes & Troubleshooting Guides" isHome={true}>
+  <!-- Clean Consumer Hero Section -->
+  <section class="mb-12 border-l-2 border-neon-cyan pl-6 py-2">
+    <h1 class="text-4xl font-extrabold tracking-tight mb-3 text-white">
+      Clear solutions for complex problems.
+    </h1>
+    <p class="text-slate-400 max-w-xl text-base leading-relaxed">
+      We analyze advanced system errors, strip away the confusing jargon, and write step-by-step guides using real-world human analogies so you can fix your device instantly.
+    </p>
+  </section>
+
+  <!-- Clean Quick Navigation Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <div class="p-6 rounded-lg border border-slate-800 bg-bg-card hover:border-neon-cyan/50 transition-all group flex flex-col justify-between">
+      <div>
+        <h3 class="text-xl font-bold text-white mb-2">Troubleshooting Guides</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          Access our full directory of simplified computer fixes, error code step-by-steps, and real-world analogies.
+        </p>
+      </div>
+      <a href="/blog" class="text-sm font-medium text-neon-cyan hover:underline inline-flex items-center gap-1 no-underline">
+        Browse all guides &rarr;
+      </a>
+    </div>
+
+    <div class="p-6 rounded-lg border border-slate-800 bg-bg-card hover:border-neon-lime/50 transition-all group flex flex-col justify-between">
+      <div>
+        <h3 class="text-xl font-bold text-white mb-2">Request a Fix</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          Can't find a solution for your specific error code? Drop us a line and let our automation pipeline write an absolute fix for you.
+        </p>
+      </div>
+      <a href="#" class="text-sm font-medium text-neon-lime hover:underline inline-flex items-center gap-1 no-underline">
+        Submit error code &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent Solutions Stream -->
+  <section class="mt-12">
+    <div class="border-b border-slate-800 pb-3 mb-6 flex justify-between items-center">
+      <h2 class="text-xl font-bold tracking-tight text-white">Latest Solutions</h2>
+    </div>
+    
+    {recentPosts.length === 0 ? (
+      <div class="text-center py-12 border border-dashed border-slate-800 rounded-lg">
+        <p class="text-slate-400 text-sm mb-1">No guides published yet.</p>
+        <p class="text-slate-500 text-xs">Check back soon for new simplified solutions.</p>
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 gap-4">
+        {recentPosts.map((post) => (
+          <a href={`/blog/${post.id}/`} class="group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-lg border border-slate-800 bg-bg-card hover:border-neon-cyan/40 transition-all duration-200 no-underline">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <span class="text-[11px] font-medium tracking-wide text-neon-cyan bg-neon-cyan/10 px-2.5 py-0.5 rounded shrink-0 w-fit text-center">
+                New Guide
+              </span>
+              <h3 class="text-base font-bold text-white group-hover:text-neon-cyan transition-colors duration-150 m-0">
+                {post.data.title}
+              </h3>
+            </div>
+            <div class="flex items-center space-x-4 mt-2 sm:mt-0 text-sm text-slate-500">
+              <FormattedDate date={post.data.pubDate} />
+              <span class="transform group-hover:translate-x-1 transition-transform text-neon-cyan">&rarr;</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
+</BlogPost>

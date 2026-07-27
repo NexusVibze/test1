@@ -1,0 +1,166 @@
+---
+import '../styles/global.css';
+const { title, description, isHome = false } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title} | NexusVibze</title>
+    <meta name="description" content={description} />
+  </head>
+  <!-- Expanded max-w-6xl to create widescreen layout room for a left panel -->
+  <body class="bg-bg-dark text-slate-200 antialiased font-sans max-w-6xl mx-auto px-6 py-8">
+    
+    <!-- Shared Header -->
+    <header class="border-b border-slate-800 pb-6 mb-12 flex justify-between items-center">
+      <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-neon-cyan to-neon-lime bg-clip-text text-transparent">
+        NEXUS//VIBZE
+      </span>
+      <nav class="space-x-4 text-sm font-medium text-slate-400">
+        <a href="/" class="hover:text-neon-cyan transition-colors">Docs</a>
+        <a href="/blog" class="hover:text-neon-cyan transition-colors">Fixes</a>
+      </nav>
+    </header>
+    
+    <main>
+      {isHome ? (
+        <slot />
+      ) : (
+        /* The Dual-Column Layout Structure Change */
+
+	<div class="flex flex-col lg:flex-row gap-12 items-start relative">
+  
+	  <!-- LEFT RAIL SIDEBAR: Stacks at the VERY TOP on mobile, pins to the left on desktop -->
+	  <aside class="w-full lg:w-64 shrink-0 lg:sticky lg:top-8 order-1 lg:order-1 border-b lg:border-b-0 lg:border-r border-slate-800/80 pb-6 lg:pb-0 	lg:pr-6">
+	    <p class="text-xs font-mono font-bold tracking-widest text-slate-500 uppercase mb-4">
+	      ON_THIS_PAGE
+	    </p>
+	    <nav id="toc-sidebar">
+	      <ul class="space-y-3 text-sm font-medium text-slate-400" id="toc-list">
+	        <!-- JavaScript hooks insert extracted interactive anchors right here dynamically -->
+	      </ul>
+	    </nav>
+	  </aside>
+	
+	  <!-- RIGHT COLUMN SPACE: Main content drops right underneath the index list on mobile -->
+	  <div class="flex-1 max-w-3xl order-2 lg:order-2">
+	    <article class="prose max-w-none">
+	      <slot />
+	    </article>
+	  </div>
+	  
+	</div>
+
+
+      )}
+    </main>
+
+    <!-- Script 1: Automatically Extracts H2 Headings and Highlights Active Section -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const article = document.querySelector(".prose");
+        const tocList = document.getElementById("toc-list");
+        if (!article || !tocList) return;
+
+        // Grab every subheading (H2) inside your solution post text
+        const headings = article.querySelectorAll("h2");
+        if (headings.length === 0) {
+          const fallbackMsg = document.createElement("li");
+          fallbackMsg.className = "text-xs font-mono text-slate-600 italic";
+          fallbackMsg.innerText = "NO_SUBHEADINGS_FOUND";
+          tocList.appendChild(fallbackMsg);
+          return;
+        }
+
+        // Loop through headings to assign layout IDs and compile sidebar list items
+        headings.forEach((heading, index) => {
+          const rawText = heading.innerText;
+          const cleanId = rawText.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+          heading.id = cleanId || `section-${index}`;
+
+          const li = document.createElement("li");
+          const anchor = document.createElement("a");
+          anchor.href = `#${heading.id}`;
+          anchor.innerText = rawText;
+          // Custom border styles for the vertical alignment rail look
+          anchor.className = "toc-link block hover:text-white transition-colors duration-200 py-0.5 border-l-2 border-transparent pl-3 -ml-px";
+          anchor.setAttribute("data-target", heading.id);
+
+          li.appendChild(anchor);
+          tocList.appendChild(li);
+        });
+
+        // Setup scroll-tracking tracking using the IntersectionObserver API
+        const links = document.querySelectorAll(".toc-link");
+        const observerOptions = {
+          root: null,
+          rootMargin: "0px 0px -60% 0px", // Triggers when section passes the upper viewport area
+          threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              // Clear previous highlight markers
+              links.forEach(link => {
+                link.classList.remove("text-neon-cyan", "border-neon-cyan");
+                link.classList.add("text-slate-400");
+              });
+
+              // Apply cyan glow to link representing active header on screen
+              const activeLink = document.querySelector(`.toc-link[data-target="${entry.target.id}"]`);
+              if (activeLink) {
+                activeLink.classList.remove("text-slate-400");
+                activeLink.classList.add("text-neon-cyan", "border-neon-cyan");
+              }
+            }
+          });
+        }, observerOptions);
+
+        headings.forEach(heading => observer.observe(heading));
+      });
+    </script>
+    
+    <!-- Script 2: Retains our verified edge-aligned code copy mechanism -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const codeBlocks = document.querySelectorAll(".prose pre");
+        codeBlocks.forEach((block) => {
+          const codeTag = block.querySelector("code");
+          if (!codeTag) return;
+          const lines = codeTag.innerText.split("\n").map(line => line.trim()).filter(line => line.length > 0 && line.toLowerCase() !== "copy");
+          codeTag.innerHTML = "";
+          block.style.position = "relative";
+          lines.forEach((lineText) => {
+            const row = document.createElement("div");
+            row.className = "command-row";
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.width = "100%";
+            row.style.padding = "0.4rem 0";
+            const textSpan = document.createElement("span");
+            textSpan.innerText = lineText;
+            row.appendChild(textSpan);
+            const btn = document.createElement("button");
+            btn.className = "inline-copy-btn";
+            btn.type = "button";
+            btn.innerText = "Copy Line";
+            btn.addEventListener("click", async () => {
+              try {
+                await navigator.clipboard.writeText(lineText);
+                btn.innerText = "Copied!";
+                btn.classList.add("copied");
+                setTimeout(() => { btn.innerText = "Copy Line"; btn.classList.remove("copied"); }, 1500);
+              } catch (err) { console.error(err); }
+            });
+            row.appendChild(btn);
+            codeTag.appendChild(row);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+---
+interface Props {
+	date: Date;
+}
+
+const { date } = Astro.props;
+
+// Step 1: Ensure we have a valid date object right here in the backend code
+const safeDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+
+// Step 2: Handle string conversions entirely within backend variables to avoid HTML syntax clashes
+const isoString = safeDate.toISOString();
+const formattedText = safeDate.toLocaleDateString('en-us', {
+	year: 'numeric',
+	month: 'short',
+	day: 'numeric',
+});
+---
+
+<!-- Step 3: Simply inject the clean text variables into your HTML tags without code blocks -->
+<time datetime={isoString}>
+	{formattedText}
+</time>

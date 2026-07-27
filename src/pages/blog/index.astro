@@ -1,0 +1,51 @@
+---
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+import BlogPost from '../../layouts/BlogPost.astro';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BlogPost title={`Solutions Index | ${SITE_TITLE}`} description={SITE_DESCRIPTION} isHome={true}>
+	<section class="mb-10 border-l-2 border-neon-cyan pl-6 py-2">
+		<h1 class="text-3xl font-extrabold tracking-tight mb-2 text-white">
+			All Troubleshooting Guides
+		</h1>
+		<p class="text-slate-400 text-base max-w-xl">
+			Explore our repository of deep system updates and device error corrections translated directly into simple everyday language.
+		</p>
+	</section>
+
+	<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		{
+			posts.map((post) => (
+				<a href={`/blog/${post.id}/`} class="group block p-6 rounded-lg border border-slate-800 bg-bg-card hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.05)] transition-all duration-300 no-underline">
+					<div class="flex justify-between items-center mb-3">
+						<span class="text-[11px] font-medium tracking-wide text-neon-cyan bg-neon-cyan/10 px-2 py-0.5 rounded">
+							Verified Fix
+						</span>
+						<span class="text-xs text-slate-500">
+							<FormattedDate date={post.data.pubDate} />
+						</span>
+					</div>
+					
+					<h3 class="text-lg font-bold text-white group-hover:text-neon-cyan transition-colors duration-200 leading-snug mb-2">
+						{post.data.title}
+					</h3>
+					
+					<p class="text-slate-400 text-sm leading-relaxed line-clamp-2">
+						{post.data.description}
+					</p>
+					
+					<div class="mt-4 pt-3 border-t border-slate-900 flex items-center justify-between text-sm font-medium text-slate-500 group-hover:text-neon-cyan transition-colors">
+						<span>Read Full Solution</span>
+						<span class="transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+					</div>
+				</a>
+			))
+		}
+	</section>
+</BlogPost>
